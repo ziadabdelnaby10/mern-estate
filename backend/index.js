@@ -1,33 +1,40 @@
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from 'dotenv';
-import userRouter from './routes/user.route.js'
+import dotenv from "dotenv";
+import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 
 dotenv.config();
 
 const uri = process.env.MONGO;
 
-
-mongoose.connect(uri).then(
-  () => {
+mongoose
+  .connect(uri)
+  .then(() => {
     console.log("Connected to MongoDB!");
-  }
-).catch(
-  (err) => {
+  })
+  .catch((err) => {
     console.log("Error connecting to DB :" + err);
-  }
-);
+  });
 const app = express();
-
-app.use(express.json());
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000!!!!");
 });
+app.use(express.json());
 
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
+
+app.use((error, request, result, next) => {
+  const statusCode = error.statusCode || 500;
+  const message = error.message || "Internal Server Error";
+  return result.status(statusCode).json({
+    success: false,
+    statusCode,
+    message,
+  });
+});
 
 /* 
 const { MongoClient, ServerApiVersion } = require('mongodb');
